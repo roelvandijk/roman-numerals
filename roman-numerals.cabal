@@ -1,5 +1,5 @@
 name:          roman-numerals
-version:       0.1.0.1
+version:       0.2
 cabal-version: >= 1.6
 build-type:    Simple
 stability:     stable
@@ -25,8 +25,9 @@ source-repository head
 library
   build-depends: base                 >= 3.0.3.1 && < 4.3
                , base-unicode-symbols >= 0.1.1   && < 0.2
+               , bytestring           >= 0.9.1.4 && < 0.10
                , mtl                  == 1.1.*
-  exposed-modules: Text.RomanNumerals
+  exposed-modules: Text.Numeral.Roman
 
 
 
