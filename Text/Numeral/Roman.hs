@@ -1,7 +1,8 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE UnicodeSyntax     #-}
+{-# LANGUAGE FlexibleContexts
+           , NoImplicitPrelude
+           , OverloadedStrings
+           , UnicodeSyntax
+  #-}
 
 {-| Parsing and pretty printing of Roman numerals.
 
@@ -50,7 +51,8 @@ module Text.Numeral.Roman
   , unsafeToRoman
 
     -- * Parsing
-  , StripPrefix
+  , StripPrefix(..)
+
   , convertFrom
   , fromRoman
   , unsafeConvertFrom
@@ -86,7 +88,7 @@ import Data.Monoid.Unicode   ( (∅), (⊕) )
 -- bytestring
 import qualified Data.ByteString as BS
 
--- mtl
+-- monads-fd
 import Control.Monad.Error ( MonadError, throwError )
 
 
@@ -176,15 +178,15 @@ convertTo nc n
     | n > maxN  = errMsg $ "too large (max = " ⊕ (show maxN) ⊕ ")"
     | n ≡ 0     = maybe (errMsg "no symbol for zero")
                         return
-                        $ ncZero nc
+                        (ncZero nc)
     | otherwise = go n $ ncTable nc
     where maxN = ncMax nc
 
           go 0 _  = return (∅)
           go _ [] = errMsg "out of symbols"
-          go n tab@(~(sym, val) : ts) 
-              | n ≥ val   = liftM2 (⊕) (return sym) $ go (n - val) tab
-              | otherwise = go n ts
+          go i tab@(~(sym, val) : ts)
+              | n ≥ val   = liftM2 (⊕) (return sym) $ go (i - val) tab
+              | otherwise = go i ts
 
           errMsg = throwError ∘ ("Roman.convertTo: " ⊕)
 
@@ -194,7 +196,8 @@ unsafeConvertTo nc = either error id ∘ convertTo nc
 
 -- |Converts a number to a modern Roman numeral. See 'convertTo' for
 --  possible exceptions.
-toRoman ∷ (IsString s, Monoid s, Ord n, Num n, MonadError String m) ⇒ n → m s
+toRoman ∷ (IsString s, Monoid s, Ord n, Num n, MonadError String m)
+        ⇒ n → m s
 toRoman = convertTo modernRoman
 
 -- |Like 'toRoman', but exceptions are promoted to errors.
@@ -232,12 +235,11 @@ convertFrom nc s | maybe False (≡ s) (ncZero nc) = return 0
                                   if s ≡ s'
                                     then return n
                                     else errMsg "invalid Roman numeral"
-    where go n _  s | null s = return n
-          go _ [] s          = errMsg "can't parse"
-          go n tab@((sym, val) : ts) s = maybe (go n ts s)
+    where go n _  x | null x = return n
+          go _ [] _          = errMsg "can't parse"
+          go n tab@((sym, val) : ts) x = maybe (go n ts x)
                                                (go (n + val) tab)
-                                               $ stripPrefix sym s
-
+                                               $ stripPrefix sym x
           errMsg = throwError ∘ ("Roman.convertFrom: " ⊕)
 
 -- |Like 'convertFrom', but exceptions are promoted to errors.
