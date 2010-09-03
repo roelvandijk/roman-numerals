@@ -16,8 +16,8 @@ monad.
 Example:
 
 @
-  \> 'toRoman' 1729 &#x2237; Either String String
-  Right \"MDCCXXIX\"
+  \> 'toRoman' 1729 &#x2237; String
+  \"MDCCXXIX\"
 @
 
 @
@@ -26,8 +26,8 @@ Example:
 @
 
 @
-  \> 'convertTo' 'simpleRoman' 1729 &#x2237; Either String String
-  Right \"MDCCXXVIIII\"
+  \> 'convertTo' 'simpleRoman' 1729 &#x2237; String
+  \"MDCCXXVIIII\"
 @
 
 @
@@ -107,12 +107,12 @@ data NumeralConfig s n = NC
     }
 
 -- |Smart constructor for a 'NumeralConfig'.
-mkNumConfig ∷ (Ord n, Num n) 
+mkNumConfig ∷ (Ord n, Num n)
             ⇒ s -- ^Symbol for zero
             → s -- ^Symbol for one
             → [(s, n)] -- ^ Symbol-value table.
             → NumeralConfig s n
-mkNumConfig z o tab = 
+mkNumConfig z o tab =
     NC { ncZero  = z
        , ncTable = sortBy (flip compare `on` snd) ((o, 1) : tab)
        }
@@ -187,7 +187,7 @@ convertFrom nc s | ncZero nc ≡ s = return 0
 -- result in empty string. Larger numbers will result in repeated use
 -- of the \'M\' symbol.
 modernRoman ∷ (IsString s, Ord n, Num n) ⇒ NumeralConfig s n
-modernRoman = 
+modernRoman =
     mkNumConfig ""
                 "I"
                 [ ("IV",    4)
@@ -211,7 +211,7 @@ modernRoman =
 -- configuration is practically limited to the range [1..3999]. Larger
 -- numbers will result in repeated use of the \'M\' symbol.
 simpleRoman ∷ (IsString s, Ord n, Num n) ⇒ NumeralConfig s n
-simpleRoman = 
+simpleRoman =
     mkNumConfig ""
                 "I"
                 [ ("V",    5)
