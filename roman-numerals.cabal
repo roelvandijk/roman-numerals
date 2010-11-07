@@ -1,5 +1,5 @@
 name:          roman-numerals
-version:       0.4
+version:       0.4.0.1
 cabal-version: >= 1.6
 build-type:    Simple
 stability:     stable
@@ -23,10 +23,10 @@ source-repository head
   location: http://code.haskell.org/~roelvandijk/code/roman-numerals
 
 library
-  build-depends: base                 >= 3.0.3.1 && < 4.3
+  build-depends: base                 >= 3.0.3.1 && < 4.4
                , base-unicode-symbols >= 0.1.1   && < 0.3
                , bytestring           >= 0.9.1   && < 0.10
-               , monads-fd            >= 0.1     && < 0.2
+               , mtl                  >= 2.0.0.0 && < 2.1
   exposed-modules: Text.Numeral.Roman
   ghc-options: -Wall
 
