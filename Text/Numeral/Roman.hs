@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts
+{-# LANGUAGE CPP
+           , FlexibleContexts
            , NoImplicitPrelude
            , OverloadedStrings
            , UnicodeSyntax
@@ -7,11 +8,10 @@
 {-| Parsing and pretty printing of Roman numerals.
 
 This module provides functions for parsing and pretty printing Roman
-numerals. Because the notation of Roman numerals has varied through
-the centuries this package allows for some customisation using a
-configuration that is passed to the conversion functions. Exceptions
-are dealt with by wrapping the results of conversions in the error
-monad.
+numerals. Because the notation of Roman numerals has varied through the
+centuries this package allows for some customisation using a configuration that
+is passed to the conversion functions. Exceptions are dealt with by wrapping the
+results of conversions in the error monad.
 
 Example:
 
@@ -21,8 +21,8 @@ Example:
 @
 
 @
-  \> 'fromRoman' \"MDCCXXIX\" &#x2237; Either String Integer
-  Right 1729
+  \> 'fromRoman' \"MDCCXXIX\" &#x2237; Maybe Integer
+  Just 1729
 @
 
 @
@@ -31,8 +31,8 @@ Example:
 @
 
 @
-  \> 'fromRoman' \"Bla\" &#x2237; Either String Integer
-  Left \"Roman.convertFrom: can't parse\"
+  \> 'fromRoman' \"Bla\" &#x2237; Maybe Integer
+  Nothing
 @
 
 -}
@@ -62,38 +62,50 @@ module Text.Numeral.Roman
 -------------------------------------------------------------------------------
 
 -- from base:
+import Control.Monad ( return, mzero )
 import Data.Bool     ( Bool, otherwise )
-import Data.Char     ( String )
 import Data.Eq       ( Eq )
 import Data.Function ( ($), flip, on )
 import Data.List     ( sortBy, null, stripPrefix )
 import Data.Maybe    ( Maybe(Nothing, Just), maybe )
 import Data.Monoid   ( Monoid )
 import Data.Ord      ( Ord, compare )
-import Data.String   ( IsString, fromString )
+import Data.String   ( IsString )
 import Data.Tuple    ( snd )
-import Control.Monad ( (>>=), (>>), return, fail )
-import Prelude       ( Num, (+), (-), fromInteger, error )
+import Prelude       ( Num, (+), (-), error )
+
+#if __GLASGOW_HASKELL__ < 700
+import Control.Monad ( (>>=), (>>), fail )
+import Data.String   ( fromString )
+import Prelude       ( fromInteger )
+#endif
 
 -- from base-unicode-symbols:
 import Data.Eq.Unicode       ( (≡) )
-import Data.Function.Unicode ( (∘) )
-import Data.Ord.Unicode      ( (≥), (≤) )
 import Data.Monoid.Unicode   ( (∅), (⊕) )
+import Data.Ord.Unicode      ( (≥), (≤) )
 
 -- from bytestring:
-import qualified Data.ByteString as BS
+import qualified Data.ByteString      as BS  ( ByteString
+                                             , isPrefixOf
+                                             , drop, length, null 
+                                             )
+import qualified Data.ByteString.Lazy as BSL ( ByteString
+                                             , isPrefixOf
+                                             , drop, length, null 
+                                             )
 
--- from monads-fd:
-import Control.Monad.Error ( MonadError, throwError )
+-- from text:
+import qualified Data.Text      as T  ( Text, null, stripPrefix )
+import qualified Data.Text.Lazy as TL ( Text, null, stripPrefix )
 
 
 -------------------------------------------------------------------------------
 -- Types
 -------------------------------------------------------------------------------
 
--- |A configuration with which the 'convertTo' and 'convertFrom'
---  functions can be parameterized.
+-- |A configuration with which the 'convertTo' and 'convertFrom' functions can
+-- be parameterized.
 data NumeralConfig s n = NC
     { -- |Symbol to represent the value 0.
       ncZero ∷ s
@@ -114,12 +126,12 @@ mkNumConfig z o tab =
        , ncTable = sortBy (flip compare `on` snd) ((o, 1) : tab)
        }
 
+
 -------------------------------------------------------------------------------
 -- Pretty printing
 -------------------------------------------------------------------------------
 
--- |Converts a number to a Roman numeral according to the given
--- configuration.
+-- |Converts a number to a Roman numeral according to the given configuration.
 convertTo ∷ Monoid s ⇒ Ord n ⇒ Num n ⇒ NumeralConfig s n → n → s
 convertTo nc n
     | n ≡ 0     = ncZero nc
@@ -146,28 +158,41 @@ instance Eq α ⇒ StripPrefix [α] where
 
 instance StripPrefix BS.ByteString where
     spNull = BS.null
-    spStripPrefix p s = let (h, t) = BS.breakSubstring p s
-                        in if spNull h
-                           then Just $ BS.drop (BS.length p) t
-                           else Nothing
+    spStripPrefix p s = if p `BS.isPrefixOf` s
+                        then Just $ BS.drop (BS.length p) s
+                        else Nothing
+
+instance StripPrefix BSL.ByteString where
+    spNull = BSL.null
+    spStripPrefix p s = if p `BSL.isPrefixOf` s
+                        then Just $ BSL.drop (BSL.length p) s
+                        else Nothing
+
+instance StripPrefix T.Text where
+    spNull        = T.null
+    spStripPrefix = T.stripPrefix
+
+instance StripPrefix TL.Text where
+    spNull        = TL.null
+    spStripPrefix = TL.stripPrefix
+
 
 -- |Parses a string as a Roman numeral according to the given
--- configuration. An exception will be thrown if the input is not a
--- valid numeral.
-convertFrom ∷ (Monoid s, StripPrefix s, Eq s, Ord n, Num n, MonadError String m)
-            ⇒ NumeralConfig s n → s → m n
+-- configuration. Result is 'Nothing' if the input is not a valid numeral.
+convertFrom ∷ ( Monoid s, StripPrefix s, Eq s
+              , Ord n, Num n
+              )
+            ⇒ NumeralConfig s n → s → Maybe n
 convertFrom nc s | ncZero nc ≡ s = return 0
                  | otherwise = do n  ← (go 0 (ncTable nc) s)
                                   if s ≡ convertTo nc n
                                     then return n
-                                    else errMsg "invalid Roman numeral"
+                                    else mzero
     where go n _  x | spNull x = return n
-          go _ [] _            = errMsg "can't parse"
+          go _ [] _            = mzero
           go n tab@((sym, val) : ts) x = maybe (go n ts x)
                                                (go (n + val) tab)
                                                $ spStripPrefix sym x
-          errMsg = throwError ∘ ("Roman.convertFrom: " ⊕)
-
 
 -------------------------------------------------------------------------------
 -- Default Configurations
@@ -223,10 +248,8 @@ simpleRoman =
 toRoman ∷ (IsString s, Monoid s, Ord n, Num n) ⇒ n → s
 toRoman = convertTo modernRoman
 
-
--- |Parses a string as a modern Roman numeral. See 'convertFrom' for possible
--- exceptions.
+-- |Parses a string as a modern Roman numeral.
 fromRoman ∷ ( IsString s, Monoid s, StripPrefix s, Eq s
-            , Ord n, Num n, MonadError String m
-            ) ⇒ s → m n
+            , Ord n, Num n
+            ) ⇒ s → Maybe n
 fromRoman = convertFrom modernRoman
