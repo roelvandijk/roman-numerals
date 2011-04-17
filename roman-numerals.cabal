@@ -19,8 +19,8 @@ description:
   conversions in the error monad.
 
 source-repository head
-  type:     darcs
-  location: http://code.haskell.org/~roelvandijk/code/roman-numerals
+  type:     git
+  location: git://github.com/roelvandijk/roman-numerals.git
 
 library
   build-depends: base                 >= 3.0.3.1 && < 4.4
