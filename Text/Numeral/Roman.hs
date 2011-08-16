@@ -8,10 +8,9 @@
 {-| Parsing and pretty printing of Roman numerals.
 
 This module provides functions for parsing and pretty printing Roman
-numerals. Because the notation of Roman numerals has varied through the
-centuries this package allows for some customisation using a configuration that
-is passed to the conversion functions. Exceptions are dealt with by wrapping the
-results of conversions in the error monad.
+numerals. Because the notation of Roman numerals has varied through
+the centuries this package allows for some customisation using a
+configuration that is passed to the conversion functions.
 
 Example:
 
@@ -88,11 +87,11 @@ import Data.Ord.Unicode      ( (≥), (≤) )
 -- from bytestring:
 import qualified Data.ByteString      as BS  ( ByteString
                                              , isPrefixOf
-                                             , drop, length, null 
+                                             , drop, length, null
                                              )
 import qualified Data.ByteString.Lazy as BSL ( ByteString
                                              , isPrefixOf
-                                             , drop, length, null 
+                                             , drop, length, null
                                              )
 
 -- from text:
