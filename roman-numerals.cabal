@@ -8,7 +8,7 @@ maintainer:    Roel van Dijk <vandijk.roel@gmail.com>
 copyright:     2009–2012 Roel van Dijk
 license:       BSD3
 license-file:  LICENSE
-home-page:     https://github.com/roelvandijk/roman-numerals
+homepage:      https://github.com/roelvandijk/roman-numerals
 bug-reports:   https://github.com/roelvandijk/roman-numerals/issues
 category:      Numerical, Parsing
 synopsis:      Parsing and pretty printing of Roman numerals
