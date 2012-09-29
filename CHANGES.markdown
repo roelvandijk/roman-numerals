@@ -1,8 +1,17 @@
 Changelog for roman-numerals
 ============================
 
+0.5.1.2
+-------
+
+*Sat Sep 29 14:14:00 UTC 2012*
+
+- Support for GHC-7.6
+
 0.5.1.1
 -------
+
+*Sat Feb 18 12:20:38 UTC 2012*
 
 - Support for GHC-7.4.1.
 

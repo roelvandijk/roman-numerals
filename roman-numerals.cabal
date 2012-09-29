@@ -1,5 +1,5 @@
 name:          roman-numerals
-version:       0.5.1.1
+version:       0.5.1.2
 cabal-version: >= 1.6
 build-type:    Simple
 stability:     stable
@@ -23,9 +23,9 @@ source-repository head
   location: git://github.com/roelvandijk/roman-numerals.git
 
 library
-  build-depends: base                 >= 3.0.3.1 && < 4.6
+  build-depends: base                 >= 3.0.3.1 && < 4.7
                , base-unicode-symbols >= 0.1.1   && < 0.3
-               , bytestring           >= 0.9.1   && < 0.10
+               , bytestring           >= 0.9.1   && < 0.11
                , text                 >= 0.11    && < 0.12
   exposed-modules: Text.Numeral.Roman
   ghc-options: -Wall
